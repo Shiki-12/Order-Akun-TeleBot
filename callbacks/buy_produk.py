@@ -11,18 +11,18 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     await query.answer()
 
-    product_name = query.data.split('_', 1)[1]
-    price, desc = db.get_product_details(product_name)
+    category = query.data.split('_', 1)[1]
+    price, desc = db.get_product_details(category)
     
     random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     order_id = f"INV-{random_str}"
     
-    db.create_order(order_id, user_id, product_name, price)
+    db.create_order(order_id, user_id, category, price)
     
     text_invoice = (
         f"<b>📝 PESANAN DIBUAT!</b>\n\n"
         f"📌 <b>Order ID:</b> <code>{order_id}</code>\n"
-        f"📦 <b>Produk:</b> {product_name.upper()}\n"
+        f"📦 <b>Kategori:</b> {category.upper()}\n"
         f"💰 <b>Total Bayar:</b> Rp {price:,}\n\n"
         f"⚠️ <i>Langkah selanjutnya adalah generate QRIS.\n"
         f"Mohon tunggu integrasi Payment Gateway.</i>"

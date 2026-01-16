@@ -5,12 +5,12 @@ DB_NAME = "accounts.db"
 
 
 
-def add_account(email, username, password):
+def add_account(email, username, password, category):
     """Saves a new account."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO accounts (email, username, password) VALUES (?, ?, ?)', 
-                   (email, username, password))
+    cursor.execute('INSERT INTO accounts (email, username, password, category) VALUES (?, ?, ?, ?)', 
+                   (email, username, password, category))
     conn.commit()
     conn.close()
 
@@ -18,7 +18,7 @@ def get_all_accounts():
     """Returns a list of all accounts."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('SELECT email, username, password FROM accounts')
+    cursor.execute('SELECT email, username, password, category FROM accounts')
     rows = cursor.fetchall()
     conn.close()
     return rows
@@ -33,16 +33,16 @@ def get_total_accounts_count():
     return count
 
 def get_unique_products():
-    """Mengambil daftar nama produk dan jumlah stoknya."""
+    """Mengambil daftar nama produk, kategori dan jumlah stoknya."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('SELECT username, COUNT(*) FROM accounts GROUP BY username')
+    cursor.execute('SELECT username, category, COUNT(*) FROM accounts GROUP BY username, category')
     rows = cursor.fetchall()
     conn.close()
     return rows
 
 def setup_db():
-    """Membuat tabel jika belum ada."""
+    """Creates the table if it doesn't exist."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     # Tabel akun (stok)
@@ -51,9 +51,17 @@ def setup_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT,
             username TEXT,
-            password TEXT
+            password TEXT,
+            category TEXT
         )
     ''')
+    
+    # Simple migration: Add category column if it doesn't exist
+    try:
+        cursor.execute('ALTER TABLE accounts ADD COLUMN category TEXT')
+    except sqlite3.OperationalError:
+        pass # Column likely already exists
+
     # Tabel kategori (harga & deskripsi)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS categories (
@@ -105,6 +113,50 @@ def create_order(order_id, user_id, product_name, amount):
         INSERT INTO orders (order_id, user_id, product_name, amount, created_at)
         VALUES (?, ?, ?, ?, ?)
     ''', (order_id, user_id, product_name, amount, int(time.time())))
+    conn.commit()
+    conn.close()
+
+def get_unique_categories():
+    """Mengambil daftar kategori dan jumlah stoknya."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    # Filter only accounts that have a category set
+    cursor.execute('SELECT category, COUNT(*) FROM accounts WHERE category IS NOT NULL AND category != "" GROUP BY category')
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def get_random_account(category):
+    """Mengambil satu akun random berdasarkan kategori."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, email, username, password FROM accounts WHERE category = ? ORDER BY RANDOM() LIMIT 1', (category,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+def delete_account(account_id):
+    """Menghapus akun setelah terjual."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM accounts WHERE id = ?', (account_id,))
+    conn.commit()
+    conn.close()
+
+def get_order(order_id):
+    """Mengambil detail pesanan."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('SELECT order_id, user_id, product_name, amount, status FROM orders WHERE order_id = ?', (order_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+def update_order_status(order_id, status):
+    """Update status pesanan."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('UPDATE orders SET status = ? WHERE order_id = ?', (status, order_id))
     conn.commit()
     conn.close()
 
