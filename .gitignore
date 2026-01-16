@@ -1,1 +1,4 @@
 .env
+commands/__pycache__/
+*.pyc
+*.pyo
