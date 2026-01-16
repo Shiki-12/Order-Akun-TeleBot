@@ -3,6 +3,7 @@ import importlib
 from dotenv import load_dotenv
 from telegram import BotCommand
 from telegram.ext import ApplicationBuilder, CommandHandler, Application
+import db
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -50,7 +51,7 @@ async def post_init(application: Application):
 
 if __name__ == '__main__':
     print("Bot is starting...")
-    
+    db.setup_db()
     app = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
 
     print("Bot is polling...")
