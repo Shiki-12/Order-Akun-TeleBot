@@ -1,10 +1,17 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 import db
+from config import RESTOCK_ALLOWED
 
-DESCRIPTION = "Add account: /restock <email> <user> <pass>"
+DESCRIPTION = "Add account: /restock <email> <user> <pass> [owner only]"
 
 async def restock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    
+    if user_id not in RESTOCK_ALLOWED:
+        await update.message.reply_text("❌ You don't have permission to use this command.")
+        return
+
     if len(context.args) != 3:
         await update.message.reply_text(
             "Error: You must provide exactly 3 items.\n"
