@@ -56,41 +56,7 @@ def load_handlers(application: Application):
         except Exception as e:
             print(f"Failed to load {filename}: {e}")
 
-
     return loaded_commands
-
-def load_callback_handlers(application: Application):
-    """
-    Scans /callbacks, loads handlers for CallbackQueryHandler.
-    Matches filename to callback_data.
-    """
-    callback_dir = "callbacks"
-    
-    if not os.path.exists(callback_dir):
-        print(f"Directory '{callback_dir}' not found. Skipping callback loading.")
-        return
-
-    callback_files = [f for f in os.listdir(callback_dir) if f.endswith('.py') and not f.startswith('__')]
-
-    for filename in callback_files:
-        module_name = f"{callback_dir}.{filename[:-3]}"
-        callback_data = filename[:-3]
-
-        try:
-            module = importlib.import_module(module_name)
-            func_name = f"{callback_data}_callback"
-            
-            if hasattr(module, func_name):
-                handler_func = getattr(module, func_name)
-                # Using regex pattern to match exact callback data
-                pattern = f"^{callback_data}$"
-                application.add_handler(CallbackQueryHandler(handler_func, pattern=pattern))
-                print(f"Loaded callback: {callback_data}")
-            else:
-                print(f"Skipped {filename}: Missing function '{func_name}'")
-
-        except Exception as e:
-            print(f"Failed to load callback {filename}: {e}")
 
 async def post_init(application: Application):
     commands = load_handlers(application)
@@ -220,5 +186,6 @@ if __name__ == '__main__':
     print("Bot is starting...")
     db.setup_db()
     app = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
+    app.add_handler(CallbackQueryHandler(handle_callback))
     print("Bot is polling...")
     app.run_polling()
