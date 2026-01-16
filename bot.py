@@ -44,6 +44,8 @@ def load_handlers(application: Application):
 async def post_init(application: Application):
     commands = load_handlers(application)
     
+    application.bot_data["command_list"] = commands
+    
     await application.bot.set_my_commands(commands)
 
 if __name__ == '__main__':
