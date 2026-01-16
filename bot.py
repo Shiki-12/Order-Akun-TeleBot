@@ -12,7 +12,6 @@ TOKEN = os.getenv("TELEGRAM_TOKEN")
 if not TOKEN:
     raise ValueError("Token Not Found, please create .env file or copy .env.example to .env and insert your own token")
 
-# 1. Define the setup function
 async def post_init(application: Application):
     """
     This function runs once when the bot starts.
