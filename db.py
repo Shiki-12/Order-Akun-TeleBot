@@ -43,3 +43,13 @@ def get_total_accounts_count():
     count = cursor.fetchone()[0]
     conn.close()
     return count
+
+def get_unique_products():
+    """Mengambil daftar nama produk dan jumlah stoknya."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    # Mengambil nama produk unik dan menghitung jumlah barisnya
+    cursor.execute('SELECT username, COUNT(*) FROM accounts GROUP BY username')
+    rows = cursor.fetchall()
+    conn.close()
+    return rows

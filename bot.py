@@ -1,8 +1,8 @@
 import os
 import importlib
 from dotenv import load_dotenv
-from telegram import BotCommand
-from telegram.ext import ApplicationBuilder, CommandHandler, Application
+from telegram import BotCommand, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, Application, CallbackQueryHandler, ContextTypes
 import db
 
 load_dotenv()
@@ -48,11 +48,26 @@ async def post_init(application: Application):
     application.bot_data["command_list"] = commands
     
     await application.bot.set_my_commands(commands)
+    
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    if query.data == 'list_produk':
+        await query.edit_message_caption(
+            caption="<b>Daftar Produk:</b>\n1. Netflix\n2. Spotify\n\nSilakan pilih nomor...",
+            parse_mode='HTML'
+        )
+    elif query.data == 'how_to_order':
+        await query.edit_message_caption(
+            caption="<b>Cara Order:</b>\n1. Klik List Produk\n2. Pilih Akun\n3. Bayar via QRIS\n4. Akun terkirim otomatis.",
+            parse_mode='HTML'
+        )
 
 if __name__ == '__main__':
     print("Bot is starting...")
     db.setup_db()
     app = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
-
+    app.add_handler(CallbackQueryHandler(handle_callback))
     print("Bot is polling...")
     app.run_polling()
