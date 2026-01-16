@@ -1,29 +1,23 @@
 import os
 from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler
 
-# 1. Load the variables from the .env file
+# Import functions from the commands folder
+from commands.start import start_command
+from commands.help import help_command
+
 load_dotenv()
-
-# 2. Get the token securely
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-# Safety check: Ensure the token was loaded
 if not TOKEN:
-    raise ValueError("No TELEGRAM_TOKEN found in .env file")
-
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"Hello! I am a bot created with Python.")
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("I can only say hello for now! Try typing /start")
+    raise ValueError("Token Not Found, please create .env file or copy .env.example to .env and insert your own token")
 
 if __name__ == '__main__':
     print("Bot is starting...")
     
     app = ApplicationBuilder().token(TOKEN).build()
 
+    # Link the imported functions to the commands
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command))
 
