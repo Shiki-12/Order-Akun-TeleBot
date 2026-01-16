@@ -23,4 +23,4 @@ async def accounts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message += f"{i}. User: **{username}**\n"
 
     message += f"\n**Total:** {len(rows)} account(s)"
-    await update.message.reply_text(message, parse_mode='Markdown')
+    await update.message.reply_text(message, parse_mode='HTML')

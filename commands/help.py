@@ -19,4 +19,4 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             continue
         help_text += f"/{cmd.command} - {cmd.description}\n"
 
-    await update.message.reply_text(help_text, parse_mode='Markdown')
+    await update.message.reply_text(help_text, parse_mode='HTML')
