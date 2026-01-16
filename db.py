@@ -3,20 +3,7 @@ import time
 
 DB_NAME = "accounts.db"
 
-def setup_db():
-    """Creates the table if it doesn't exist."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS accounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT,
-            username TEXT,
-            password TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
+
 
 def add_account(email, username, password):
     """Saves a new account."""
@@ -75,6 +62,17 @@ def setup_db():
             description TEXT
         )
     ''')
+    # Tabel orders
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS orders (
+            order_id TEXT PRIMARY KEY,
+            user_id INTEGER,
+            product_name TEXT,
+            amount INTEGER,
+            status TEXT DEFAULT 'PENDING',
+            created_at INTEGER
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -98,19 +96,6 @@ def get_product_details(name):
     row = cursor.fetchone()
     conn.close()
     return row if row else (0, "Deskripsi belum diatur.")
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS orders (
-            order_id TEXT PRIMARY KEY,
-            user_id INTEGER,
-            product_name TEXT,
-            amount INTEGER,
-            status TEXT DEFAULT 'PENDING',
-            created_at INTEGER
-        )
-    ''')
-    conn.commit()
-    conn.close()
 
 def create_order(order_id, user_id, product_name, amount):
     """Mencatat pesanan baru ke database."""

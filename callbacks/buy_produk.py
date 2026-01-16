@@ -11,7 +11,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     await query.answer()
 
-    product_name = query.data.split('_')[1]
+    product_name = query.data.split('_', 1)[1]
     price, desc = db.get_product_details(product_name)
     
     random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))

@@ -8,7 +8,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    product_name = query.data.split('_')[1]
+    product_name = query.data.split('_', 1)[1]
     price, desc = db.get_product_details(product_name)
     
     stok_count = 0
