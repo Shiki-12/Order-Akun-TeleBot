@@ -34,3 +34,12 @@ def get_all_accounts():
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def get_total_accounts_count():
+    import sqlite3
+    conn = sqlite3.connect("accounts.db")
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM accounts')
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count

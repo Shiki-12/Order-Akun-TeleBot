@@ -9,3 +9,5 @@ ALLOWED_USERS = list(map(int, os.getenv("ALLOWED_USERS", "").split(","))) if os.
 
 # Combine owner and allowed users
 RESTOCK_ALLOWED = [OWNER_ID] + ALLOWED_USERS
+
+BANNER_FILE_ID = os.getenv("BANNER_FILE_ID")
