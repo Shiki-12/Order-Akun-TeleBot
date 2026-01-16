@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 import db
 from config import RESTOCK_ALLOWED # Mengambil daftar admin dari config
 
-DESCRIPTION = "Atur harga produk: /setharga <nama> <harga> <deskripsi>"
+DESCRIPTION = "Atur harga produk: /setharga nama harga deskripsi"
 
 async def setprice_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
