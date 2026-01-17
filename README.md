@@ -1,169 +1,457 @@
-# Order-Akun-TeleBot
+<p align="center">
+  <img src="https://img.shields.io/badge/Telegram-Bot-blue?style=for-the-badge&logo=telegram" alt="Telegram Bot"/>
+  <img src="https://img.shields.io/badge/Python-3.8+-green?style=for-the-badge&logo=python" alt="Python"/>
+  <img src="https://img.shields.io/badge/Database-SQLite-orange?style=for-the-badge&logo=sqlite" alt="SQLite"/>
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License"/>
+</p>
 
-A Telegram bot for managing and restocking user accounts with role-based access control.
+# 🛒 Order-Akun-TeleBot
 
-## Features
+> A powerful and modular Telegram bot for managing digital account sales with automated inventory management, order processing, and role-based access control.
 
-- **Account Management**: Store and organize accounts by username
-- **Role-Based Access**: Owner and selected users can restock accounts
-- **Stock Tracking**: View total stocked accounts per username
-- **Command Help**: Dynamic help command showing available commands based on user permissions
+---
 
-## Prerequisites
+## ✨ Features
 
-- Python 3.8+
-- python-telegram-bot library
-- python-dotenv library
+| Feature                     | Description                                                 |
+| --------------------------- | ----------------------------------------------------------- |
+| 🔐 **Role-Based Access**    | Owner and whitelisted users can manage inventory and prices |
+| 📦 **Inventory Management** | Add accounts individually or bulk import via CSV            |
+| 💰 **Dynamic Pricing**      | Set custom prices and descriptions per product category     |
+| 🛍️ **Order System**         | Automated order creation with unique invoice IDs            |
+| 📊 **Stock Tracking**       | Real-time stock monitoring grouped by category              |
+| 🎨 **Interactive UI**       | Beautiful inline keyboard menus for seamless navigation     |
+| 🔄 **Modular Architecture** | Auto-loading command and callback handlers                  |
 
-## Installation
+---
 
-1. Clone the repository:
+## 📋 Table of Contents
+
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Commands](#-commands)
+- [Project Structure](#-project-structure)
+- [Database Schema](#-database-schema)
+- [How It Works](#-how-it-works)
+- [API Reference](#-api-reference)
+- [Security](#-security)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 🔧 Prerequisites
+
+- **Python** 3.8 or higher
+- **Telegram Bot Token** from [@BotFather](https://t.me/BotFather)
+- Required Python packages:
+  - `python-telegram-bot`
+  - `python-dotenv`
+
+---
+
+## 📥 Installation
+
+### 1. Clone the Repository
+
 ```bash
-git clone <repository-url>
+git clone https://github.com/yourusername/Order-Akun-TeleBot.git
 cd Order-Akun-TeleBot
 ```
 
-2. Install dependencies:
+### 2. Create Virtual Environment (Recommended)
+
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/macOS
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+
 ```bash
 pip install python-telegram-bot python-dotenv
 ```
 
-3. Create a `.env` file in the project root:
-```env
-TELEGRAM_TOKEN=your_bot_token_here
-OWNER_ID=your_telegram_user_id
-ALLOWED_USERS=user_id_1,user_id_2,user_id_3
+### 4. Configure Environment Variables
+
+```bash
+cp .env.example .env
 ```
 
-4. Run the bot:
+Edit `.env` with your credentials (see [Configuration](#-configuration)).
+
+### 5. Run the Bot
+
 ```bash
 python bot.py
 ```
 
-## Environment Variables
+---
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `TELEGRAM_TOKEN` | Telegram bot API token | `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11` |
-| `OWNER_ID` | Telegram user ID of the owner | `123456789` |
-| `ALLOWED_USERS` | Comma-separated list of user IDs with restock access | `987654321,111111111,222222222` |
+## ⚙️ Configuration
 
-## Commands
+Create a `.env` file in the project root with the following variables:
 
-### `/start`
-Displays a welcome message to start using the bot.
+```env
+TELEGRAM_TOKEN=your_bot_token_here
+OWNER_ID=your_telegram_user_id
+ALLOWED_USERS=user_id_1,user_id_2,user_id_3
+BANNER_FILE_ID=your_banner_file_id_here
+```
 
-**Usage**: `/start`
+### Environment Variables Reference
 
-### `/help`
-Shows all available commands based on user permissions. Owner and allowed users will see the `/restock` command, while other users won't.
+| Variable         | Required | Description                         | Example             |
+| ---------------- | -------- | ----------------------------------- | ------------------- |
+| `TELEGRAM_TOKEN` | ✅       | Bot API token from BotFather        | `123456:ABC-DEF...` |
+| `OWNER_ID`       | ✅       | Owner's Telegram user ID            | `123456789`         |
+| `ALLOWED_USERS`  | ❌       | Comma-separated admin user IDs      | `111111,222222`     |
+| `BANNER_FILE_ID` | ❌       | Telegram file ID for welcome banner | `AgACAgIAAxk...`    |
 
-**Usage**: `/help`
+> 💡 **Tip**: Get your Telegram user ID by messaging [@userinfobot](https://t.me/userinfobot)
 
-### `/restock` *(Owner & Allowed Users Only)*
-Adds a new account to the database.
+---
 
-**Usage**: `/restock <email> <username> <password>`
+## 📝 Commands
 
-**Example**: `/restock user@example.com john123 pass123`
+### Public Commands
 
-**Permissions**: Only the owner and users in `ALLOWED_USERS` can use this command.
+| Command     | Description                                          |
+| ----------- | ---------------------------------------------------- |
+| `/start`    | Display welcome message with user info and bot stats |
+| `/help`     | Show available commands based on user permissions    |
+| `/accounts` | View current stock grouped by category               |
 
-### `/accounts`
-Lists all stocked accounts grouped by username with total account count.
+### Admin Commands (Owner & Allowed Users)
 
-**Usage**: `/accounts`
+| Command     | Description                                |
+| ----------- | ------------------------------------------ |
+| `/restock`  | Add accounts to inventory                  |
+| `/setprice` | Configure product pricing and descriptions |
 
-**Output**: Shows username and total number of accounts for each user.
+---
 
-## Project Structure
+### Command Details
+
+#### `/start`
+
+Displays a personalized welcome message with:
+
+- User information (ID, username)
+- Bot statistics (total stock, transactions)
+- Quick access buttons for browsing products
+
+---
+
+#### `/restock` _(Admin Only)_
+
+**Method 1: Single Account**
+
+```
+/restock <email> <username> <password> <category>
+```
+
+**Example:**
+
+```
+/restock user@email.com netflix_user pass123 Netflix
+```
+
+**Method 2: Bulk Import via CSV**
+
+1. Prepare a CSV file with headers: `email,username,password,category`
+2. Send the file with caption `/restock`
+
+**CSV Format:**
+
+```csv
+email,username,password,category
+user1@mail.com,account1,pass1,Netflix
+user2@mail.com,account2,pass2,Spotify
+```
+
+---
+
+#### `/setprice` _(Admin Only)_
+
+Set product pricing and description:
+
+```
+/setprice <product_name> <price> <description>
+```
+
+**Example:**
+
+```
+/setprice netflix 50000 Akun Premium 1 Bulan Full Garansi
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 Order-Akun-TeleBot/
-├── bot.py                 # Main bot application
-├── config.py              # Configuration and environment variables
-├── db.py                  # Database operations (SQLite)
-├── commands/              # Command handlers
+│
+├── 📄 bot.py                 # Main application entry point
+├── 📄 config.py              # Configuration & environment loader
+├── 📄 db.py                  # Database operations module
+│
+├── 📁 commands/              # Command handlers (auto-loaded)
 │   ├── __init__.py
-│   ├── start.py          # /start command
-│   ├── help.py           # /help command
-│   ├── restock.py        # /restock command
-│   └── accounts.py       # /accounts command
-├── .env                   # Environment variables (not in git)
-├── .gitignore             # Git ignore file
-├── accounts.db            # SQLite database (auto-created)
-└── README.md              # This file
+│   ├── start.py              # /start - Welcome message
+│   ├── help.py               # /help - Command list
+│   ├── accounts.py           # /accounts - Stock viewer
+│   ├── restock.py            # /restock - Inventory management
+│   └── setprice.py           # /setprice - Price configuration
+│
+├── 📁 callbacks/             # Inline button handlers (auto-loaded)
+│   ├── list_produk.py        # Browse product categories
+│   ├── detail_produk.py      # View product details
+│   ├── buy_produk.py         # Purchase initiation
+│   ├── confirm_payment.py    # Payment confirmation
+│   ├── how_to_order.py       # Order instructions
+│   └── back_to_start.py      # Navigation back to start
+│
+├── 📄 .env                   # Environment variables (git-ignored)
+├── 📄 .env.example           # Environment template
+├── 📄 .gitignore             # Git ignore rules
+├── 📄 accounts.db            # SQLite database (auto-created)
+└── 📄 README.md              # Documentation
 ```
 
-## Database
+---
 
-The bot uses SQLite for account storage. The database is automatically created on first run.
+## 🗄️ Database Schema
 
-### Database Schema
+The bot uses SQLite with automatic table creation on startup.
 
-**Table: `accounts`**
+### Tables
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | INTEGER | Primary key (auto-increment) |
-| email | TEXT | Account email |
-| username | TEXT | Account username |
-| password | TEXT | Account password |
+#### `accounts` - Inventory Storage
 
-## How It Works
+| Column     | Type    | Description                   |
+| ---------- | ------- | ----------------------------- |
+| `id`       | INTEGER | Primary key (auto-increment)  |
+| `email`    | TEXT    | Account email                 |
+| `username` | TEXT    | Account username/product name |
+| `password` | TEXT    | Account password              |
+| `category` | TEXT    | Product category              |
 
-1. **Command Loading**: The `bot.py` scans the `commands/` directory and dynamically loads all command handlers.
-2. **Permission Check**: The `/restock` command checks if the user is in the `RESTOCK_ALLOWED` list before executing.
-3. **Dynamic Help**: The `/help` command filters commands based on user permissions.
-4. **Account Grouping**: The `/accounts` command groups accounts by username and displays the count.
+#### `categories` - Product Configuration
 
-## Configuration
+| Column        | Type    | Description                 |
+| ------------- | ------- | --------------------------- |
+| `name`        | TEXT    | Category name (primary key) |
+| `price`       | INTEGER | Price in IDR                |
+| `description` | TEXT    | Product description         |
 
-### Adding New Users with Restock Access
+#### `orders` - Transaction Records
 
-Edit your `.env` file and add user IDs to `ALLOWED_USERS`:
+| Column         | Type    | Description                          |
+| -------------- | ------- | ------------------------------------ |
+| `order_id`     | TEXT    | Unique order ID (e.g., `INV-ABC123`) |
+| `user_id`      | INTEGER | Telegram user ID                     |
+| `product_name` | TEXT    | Purchased product category           |
+| `amount`       | INTEGER | Order amount                         |
+| `status`       | TEXT    | Order status (PENDING/COMPLETED)     |
+| `created_at`   | INTEGER | Unix timestamp                       |
 
-```env
-ALLOWED_USERS=987654321,111111111,222222222
+---
+
+## ⚡ How It Works
+
+### Architecture Overview
+
+```mermaid
+graph TB
+    A[Telegram User] --> B[Bot Application]
+    B --> C{Handler Router}
+    C --> D[Commands]
+    C --> E[Callbacks]
+    D --> F[(SQLite DB)]
+    E --> F
+
+    subgraph Commands
+        D --> D1[/start]
+        D --> D2[/help]
+        D --> D3[/accounts]
+        D --> D4[/restock]
+        D --> D5[/setprice]
+    end
+
+    subgraph Callbacks
+        E --> E1[list_produk]
+        E --> E2[detail_produk]
+        E --> E3[buy_produk]
+        E --> E4[confirm_payment]
+    end
 ```
 
-Then restart the bot.
+### Key Mechanisms
 
-## Error Handling
+1. **Auto-Loading Handlers**
+   - `bot.py` scans `/commands` and `/callbacks` directories
+   - Modules are loaded dynamically based on naming conventions
+   - Each module exports `DESCRIPTION` for command registration
 
-- Missing arguments in commands will show usage instructions
-- Unauthorized users trying to use `/restock` will receive a permission denied message
-- Database errors are caught and reported to the user
-- Invalid environment variables default to empty values
+2. **Permission System**
+   - `RESTOCK_ALLOWED` list combines `OWNER_ID` + `ALLOWED_USERS`
+   - Admin commands check user ID before execution
+   - `/help` filters commands based on user permissions
 
-## Security Considerations
+3. **Order Flow**
 
-- Never commit `.env` file to version control
-- Use environment variables for sensitive data (tokens, IDs)
-- Passwords are stored in plain text (consider encryption for production)
-- Validate and sanitize user inputs
+   ```
+   Browse Products → Select Category → View Details → Create Order → Confirm Payment
+   ```
 
-## Troubleshooting
+4. **Inventory Management**
+   - Accounts are grouped by `category`
+   - Random account selection for sales
+   - Automatic deletion after confirmed sale
 
-### Bot not responding
-- Check if `TELEGRAM_TOKEN` is correct
-- Ensure the bot is polling: `python bot.py`
-- Check internet connection
+---
 
-### Command not working
-- Verify user ID is in `ALLOWED_USERS` for `/restock`
-- Check correct command syntax
-- Review `.env` file configuration
+## 📚 API Reference
 
-### Database errors
-- Ensure `accounts.db` file is not locked by another process
-- Check write permissions in the project directory
-- Delete `accounts.db` to reset the database
+### Database Functions (`db.py`)
 
-## Contributing
+| Function                  | Parameters                              | Returns      | Description                     |
+| ------------------------- | --------------------------------------- | ------------ | ------------------------------- |
+| `setup_db()`              | -                                       | -            | Initialize database tables      |
+| `add_account()`           | email, username, password, category     | -            | Add new account                 |
+| `get_all_accounts()`      | -                                       | List[Tuple]  | Get all accounts                |
+| `get_unique_categories()` | -                                       | List[Tuple]  | Get categories with stock count |
+| `get_random_account()`    | category                                | Tuple / None | Get random account by category  |
+| `delete_account()`        | account_id                              | -            | Remove account from inventory   |
+| `set_product_price()`     | name, price, description                | -            | Set/update product pricing      |
+| `get_product_details()`   | name                                    | Tuple        | Get price and description       |
+| `create_order()`          | order_id, user_id, product_name, amount | -            | Create new order                |
+| `get_order()`             | order_id                                | Tuple / None | Get order details               |
+| `update_order_status()`   | order_id, status                        | -            | Update order status             |
 
-Feel free to modify and extend the bot functionality by adding new commands in the `commands/` directory.
+---
 
-## License
+## 🔒 Security
 
-Add your license information here.
+### Best Practices
+
+- ✅ Never commit `.env` to version control
+- ✅ Use environment variables for all sensitive data
+- ✅ Validate user permissions before admin operations
+- ✅ Sanitize user inputs using `html.escape()`
+
+### Security Considerations
+
+> ⚠️ **Warning**: Passwords are stored in plain text. For production use, consider:
+>
+> - Encrypting sensitive data at rest
+> - Using secure credential storage
+> - Implementing audit logging
+
+---
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+<details>
+<summary><b>Bot not responding to commands</b></summary>
+
+1. Verify `TELEGRAM_TOKEN` is correct
+2. Ensure bot is running: `python bot.py`
+3. Check internet connectivity
+4. Confirm bot was started via BotFather
+
+</details>
+
+<details>
+<summary><b>Permission denied for /restock</b></summary>
+
+1. Verify your Telegram user ID
+2. Check `OWNER_ID` in `.env`
+3. Ensure your ID is in `ALLOWED_USERS` if not owner
+4. Restart bot after `.env` changes
+
+</details>
+
+<details>
+<summary><b>Database errors</b></summary>
+
+1. Check if `accounts.db` is locked by another process
+2. Verify write permissions in project directory
+3. Delete `accounts.db` to reset (⚠️ loses all data)
+
+</details>
+
+<details>
+<summary><b>CSV import failing</b></summary>
+
+1. Ensure CSV has correct headers: `email,username,password,category`
+2. Use UTF-8 encoding
+3. Check for empty rows or malformed data
+
+</details>
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to extend the bot:
+
+### Adding New Commands
+
+1. Create file in `commands/` directory (e.g., `mycommand.py`)
+2. Define the command function:
+
+   ```python
+   from telegram import Update
+   from telegram.ext import ContextTypes
+
+   DESCRIPTION = "My command description"
+
+   async def mycommand_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+       await update.message.reply_text("Hello!")
+   ```
+
+3. Restart the bot - command auto-loads!
+
+### Adding New Callbacks
+
+1. Create file in `callbacks/` directory
+2. Define `PATTERN` and `callback_handler`:
+
+   ```python
+   PATTERN = "^my_pattern$"
+
+   async def callback_handler(update, context):
+       query = update.callback_query
+       await query.answer()
+       # Handle callback
+   ```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  <b>Made with ❤️ for the Telegram community</b>
+</p>
+
+<p align="center">
+  <a href="https://t.me/yourbotusername">Try the Bot</a> •
+  <a href="https://github.com/yourusername/Order-Akun-TeleBot/issues">Report Bug</a> •
+  <a href="https://github.com/yourusername/Order-Akun-TeleBot/issues">Request Feature</a>
+</p>
