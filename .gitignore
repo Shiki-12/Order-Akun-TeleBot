@@ -4,3 +4,4 @@ accounts.db
 commands/__pycache__/
 *.pyc
 *.pyo
+*.csv

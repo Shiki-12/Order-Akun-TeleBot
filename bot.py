@@ -39,7 +39,16 @@ def load_handlers(application: Application):
             module = importlib.import_module(module_name)
             func_name = f"{command_name}_command"
             
-            if hasattr(module, func_name):
+            # Allow modules to define custom handlers
+            if hasattr(module, "HANDLERS"):
+                for handler in module.HANDLERS:
+                    application.add_handler(handler)
+                
+                description = getattr(module, "DESCRIPTION", "No description provided")
+                loaded_commands.append(BotCommand(command_name, description))
+                print(f"Loaded (Custom): /{command_name} - {description}")
+            
+            elif hasattr(module, func_name):
                 handler_func = getattr(module, func_name)
                 application.add_handler(CommandHandler(command_name, handler_func))
                 description = getattr(module, "DESCRIPTION", "No description provided")
