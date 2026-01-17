@@ -13,7 +13,6 @@ async def restock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     
-    # Check if a document is uploaded (CSV)
     if update.message.document:
         document = update.message.document
         file_name = document.file_name

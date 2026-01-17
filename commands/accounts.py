@@ -19,11 +19,11 @@ async def accounts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         stock_counts[key] = stock_counts.get(key, 0) + 1
 
     # Format the message
-    message = "<b>Current Stock:</b>\n\n"
+    message = "<b>📊 STOK SAAT INI:</b>\n\n"
     
     for i, ((username, category), count) in enumerate(stock_counts.items(), 1):
-        cat_str = f" ({category})" if category else ""
-        message += f"{i}. User: <b>{username}</b>{cat_str} | Stok: {count}\n"
+        cat_str = f" [<code>{category.upper()}</code>]" if category else ""
+        message += f"{i}. <b>{username}</b>{cat_str} | Stok: <code>{count}</code>\n"
 
     message += f"\n<b>Total:</b> {len(rows)} account(s)"
     await update.message.reply_text(message, parse_mode='HTML')

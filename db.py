@@ -6,11 +6,10 @@ DB_NAME = "accounts.db"
 
 
 def add_account(email, username, password, category):
-    """Saves a new account."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute('INSERT INTO accounts (email, username, password, category) VALUES (?, ?, ?, ?)', 
-                   (email, username, password, category))
+                   (email, username, password, category.lower()))
     conn.commit()
     conn.close()
 
