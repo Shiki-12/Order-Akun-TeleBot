@@ -1,15 +1,34 @@
+import os
 import sqlite3
 import time
+from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_NAME = "accounts.db"
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+cipher = Fernet(ENCRYPTION_KEY) if ENCRYPTION_KEY else None
+
+def encrypt_data(data):
+    if not cipher or not data: return data
+    return cipher.encrypt(data.encode()).decode()
+
+def decrypt_data(data):
+    if not cipher or not data: return data
+    try:
+        return cipher.decrypt(data.encode()).decode()
+    except:
+        return data # Fallback if not encrypted or key invalid
 
 
 
 def add_account(email, username, password, category):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
+    encrypted_pass = encrypt_data(password)
     cursor.execute('INSERT INTO accounts (email, username, password, category) VALUES (?, ?, ?, ?)', 
-                   (email, username, password, category.lower()))
+                   (email, username, encrypted_pass, category.lower()))
     conn.commit()
     conn.close()
 
@@ -20,7 +39,14 @@ def get_all_accounts():
     cursor.execute('SELECT email, username, password, category FROM accounts')
     rows = cursor.fetchall()
     conn.close()
-    return rows
+    
+    # Decrypt passwords
+    decrypted_rows = []
+    for r in rows:
+        email, username, password, category = r
+        decrypted_rows.append((email, username, decrypt_data(password), category))
+        
+    return decrypted_rows
 
 def get_total_accounts_count():
     import sqlite3
@@ -145,6 +171,11 @@ def get_random_account(category):
     cursor.execute('SELECT id, email, username, password FROM accounts WHERE category = ? ORDER BY RANDOM() LIMIT 1', (category,))
     row = cursor.fetchone()
     conn.close()
+    
+    if row:
+        _id, email, username, password = row
+        return (_id, email, username, decrypt_data(password))
+        
     return row
 
 def delete_account(account_id):
