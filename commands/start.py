@@ -1,7 +1,7 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
-import db
-import config
+import db #
+import config #
 
 DESCRIPTION = "Start the bot and get welcome message"
 
@@ -9,8 +9,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
     username = f"@{user.username}" if user.username else "Tidak ada"
+    
+    # Mengambil total stok dari database
     total_stok = db.get_total_accounts_count()
-    file_id = config.BANNER_FILE_ID
+    file_id = config.BANNER_FILE_ID #
 
     caption_text = (
         f"👋 <b>Halo {user.first_name}!</b>\n"
@@ -27,13 +29,25 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"/accounts - Untuk melihat stok produk"
     )
 
-    # HANYA dua tombol ini yang tersisa
+    # Struktur ReplyKeyboardMarkup sesuai referensi gambar yang Anda inginkan
+    # Pastikan menggunakan KeyboardButton, bukan InlineKeyboardButton
     keyboard = [
-        [InlineKeyboardButton("🛒 List Produk", callback_data='list_produk')],
-        [InlineKeyboardButton("❓ Cara Order", callback_data='how_to_order')]
+        [KeyboardButton("🏷️ Daftar Produk"), KeyboardButton("💰 Sisa Saldo: Rp 0")],
+        [KeyboardButton("📦 Cek Stok")],
+        [KeyboardButton("1"), KeyboardButton("2"), KeyboardButton("3"), KeyboardButton("4"), KeyboardButton("5")],
+        [KeyboardButton("6")],
+        [KeyboardButton("💰 Isi Saldo"), KeyboardButton("👤 Akun Saya")],
+        [KeyboardButton("❓ Bantuan"), KeyboardButton("🎟️ Voucher")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
 
+    # PERBAIKAN: Ganti 'persistent' menjadi 'is_persistent'
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard, 
+        resize_keyboard=True, 
+        is_persistent=True 
+    )
+
+    # Mengirim pesan dengan banner dan keyboard baru
     await update.message.reply_photo(
         photo=file_id,
         caption=caption_text,
