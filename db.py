@@ -77,9 +77,22 @@ def setup_db():
             product_name TEXT,
             amount INTEGER,
             status TEXT DEFAULT 'PENDING',
-            created_at INTEGER
+            created_at INTEGER,
+            payment_url TEXT,
+            payment_ref TEXT
         )
     ''')
+    
+    # Migration: Add payment_url and payment_ref if they don't exist
+    try:
+        cursor.execute('ALTER TABLE orders ADD COLUMN payment_url TEXT')
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute('ALTER TABLE orders ADD COLUMN payment_ref TEXT')
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
     conn.close()
 
@@ -104,14 +117,14 @@ def get_product_details(name):
     conn.close()
     return row if row else (0, "Deskripsi belum diatur.")
 
-def create_order(order_id, user_id, product_name, amount):
+def create_order(order_id, user_id, product_name, amount, payment_url=None, payment_ref=None):
     """Mencatat pesanan baru ke database."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO orders (order_id, user_id, product_name, amount, created_at)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (order_id, user_id, product_name, amount, int(time.time())))
+        INSERT INTO orders (order_id, user_id, product_name, amount, created_at, payment_url, payment_ref)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (order_id, user_id, product_name, amount, int(time.time()), payment_url, payment_ref))
     conn.commit()
     conn.close()
 
@@ -146,7 +159,7 @@ def get_order(order_id):
     """Mengambil detail pesanan."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('SELECT order_id, user_id, product_name, amount, status FROM orders WHERE order_id = ?', (order_id,))
+    cursor.execute('SELECT order_id, user_id, product_name, amount, status, payment_url, payment_ref FROM orders WHERE order_id = ?', (order_id,))
     row = cursor.fetchone()
     conn.close()
     return row
