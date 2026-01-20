@@ -14,8 +14,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     category = query.data.split('_', 1)[1]
     price, desc = db.get_product_details(category)
     
-    print(f"DEBUG: Buying {category}, Price: {price}")
-    
     if price <= 0:
         await query.edit_message_caption(caption="⚠️ Product price is invalid (0). Please contact admin to set price.")
         return

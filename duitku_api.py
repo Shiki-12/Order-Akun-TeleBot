@@ -69,12 +69,7 @@ class DuitkuAPI:
         }
 
         try:
-            print(f"DEBUG Duitku Request URL: {url}")
-            print(f"DEBUG Duitku Payload: {json.dumps(data, indent=2)}")
-            
             response = requests.post(url, json=data)
-            print(f"DEBUG Duitku Response Code: {response.status_code}")
-            print(f"DEBUG Duitku Response Body: {response.text}")
             
             result = response.json()
             # result contains paymentUrl if successful
