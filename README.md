@@ -17,13 +17,13 @@
 | Feature                      | Description                                                   |
 | ---------------------------- | ------------------------------------------------------------- |
 | 🔐 **Role-Based Access**     | Owner and whitelisted admins can manage inventory and pricing |
-| � **Duitku Payment Gateway** | Real-time QRIS/VA payment with automatic status checking      |
+| 💳 **Duitku Payment Gateway** | Real-time QRIS/VA payment with automatic status checking      |
 | 🔒 **Password Encryption**   | Secure credentials with Fernet symmetric encryption           |
-| � **Inventory Management**   | Single or bulk CSV import with auto-pricing                   |
+| 📦 **Inventory Management**   | Single or bulk CSV import with auto-pricing                   |
 | 🚀 **Dual Navigation**       | Both Inline Keyboard and Reply Keyboard menus                 |
 | 🛍️ **Automated Delivery**    | Instant account delivery after payment confirmation           |
 | 📊 **Stock Tracking**        | Real-time stock grouped by category                           |
-| �️ **Modular Architecture**   | Auto-loading command and callback handlers                    |
+| 📚 **Modular Architecture**   | Auto-loading command and callback handlers                    |
 
 ---
 
