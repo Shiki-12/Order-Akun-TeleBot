@@ -280,18 +280,17 @@ graph TB
     E --> F
 
     subgraph Commands
-        D --> D1 [/start]
-        D --> D2 [/help]
-        D --> D3 [/accounts]
-        D --> D4 [/restock]
-        D --> D5 [/setprice]
+        D --> D1["/start"]
+        D --> D2["/help"]
+        D --> D3["/accounts"]
+        D --> D4["/setprice"]
     end
 
     subgraph Callbacks
-        E --> E1 [list_produk]
-        E --> E2 [detail_produk]
-        E --> E3 [buy_produk]
-        E --> E4 [confirm_payment]
+        E --> E1[list_produk]
+        E --> E2[detail_produk]
+        E --> E3[buy_produk]
+        E --> E4[confirm_payment]
     end
 ```
 
