@@ -193,20 +193,6 @@ user2@mail.com,account2,pass2,Spotify,25000,Family Plan
 
 ---
 
-#### `/setprice` _(Admin Only)_
-
-```
-/setprice <product_name> <price> [description]
-```
-
-**Example:**
-
-```
-/setprice netflix 50000 Akun Premium 1 Bulan Full Garansi
-```
-
----
-
 ## 🔄 User Flow
 
 ### Purchase Flow via Reply Keyboard
