@@ -2,26 +2,28 @@
   <img src="https://img.shields.io/badge/Telegram-Bot-blue?style=for-the-badge&logo=telegram" alt="Telegram Bot"/>
   <img src="https://img.shields.io/badge/Python-3.8+-green?style=for-the-badge&logo=python" alt="Python"/>
   <img src="https://img.shields.io/badge/Database-SQLite-orange?style=for-the-badge&logo=sqlite" alt="SQLite"/>
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License"/>
+  <img src="https://img.shields.io/badge/Payment-Duitku-purple?style=for-the-badge" alt="Duitku"/>
+  <img src="https://img.shields.io/badge/Encryption-Fernet-red?style=for-the-badge&logo=security" alt="Encryption"/>
 </p>
 
 # 🛒 Order-Akun-TeleBot
 
-> A powerful and modular Telegram bot for managing digital account sales with automated inventory management, order processing, and role-based access control.
+> A powerful Telegram bot for digital account sales with integrated **Duitku Payment Gateway**, **password encryption**, **automated delivery**, and full **inline/reply keyboard** navigation.
 
 ---
 
 ## ✨ Features
 
-| Feature                     | Description                                                 |
-| --------------------------- | ----------------------------------------------------------- |
-| 🔐 **Role-Based Access**    | Owner and whitelisted users can manage inventory and prices |
-| 📦 **Inventory Management** | Add accounts individually or bulk import via CSV            |
-| 💰 **Dynamic Pricing**      | Set custom prices and descriptions per product category     |
-| 🛍️ **Order System**         | Automated order creation with unique invoice IDs            |
-| 📊 **Stock Tracking**       | Real-time stock monitoring grouped by category              |
-| 🎨 **Interactive UI**       | Beautiful inline keyboard menus for seamless navigation     |
-| 🔄 **Modular Architecture** | Auto-loading command and callback handlers                  |
+| Feature                      | Description                                                   |
+| ---------------------------- | ------------------------------------------------------------- |
+| 🔐 **Role-Based Access**     | Owner and whitelisted admins can manage inventory and pricing |
+| � **Duitku Payment Gateway** | Real-time QRIS/VA payment with automatic status checking      |
+| 🔒 **Password Encryption**   | Secure credentials with Fernet symmetric encryption           |
+| � **Inventory Management**   | Single or bulk CSV import with auto-pricing                   |
+| 🚀 **Dual Navigation**       | Both Inline Keyboard and Reply Keyboard menus                 |
+| 🛍️ **Automated Delivery**    | Instant account delivery after payment confirmation           |
+| 📊 **Stock Tracking**        | Real-time stock grouped by category                           |
+| �️ **Modular Architecture**   | Auto-loading command and callback handlers                    |
 
 ---
 
@@ -31,10 +33,10 @@
 - [Installation](#-installation)
 - [Configuration](#-configuration)
 - [Commands](#-commands)
+- [User Flow](#-user-flow)
 - [Project Structure](#-project-structure)
 - [Database Schema](#-database-schema)
-- [How It Works](#-how-it-works)
-- [API Reference](#-api-reference)
+- [Payment Integration](#-payment-integration)
 - [Security](#-security)
 - [Troubleshooting](#-troubleshooting)
 - [Contributing](#-contributing)
@@ -46,9 +48,12 @@
 
 - **Python** 3.8 or higher
 - **Telegram Bot Token** from [@BotFather](https://t.me/BotFather)
+- **Duitku Merchant Account** (for payment processing)
 - Required Python packages:
   - `python-telegram-bot`
   - `python-dotenv`
+  - `cryptography`
+  - `requests`
 
 ---
 
@@ -61,7 +66,7 @@ git clone https://github.com/yourusername/Order-Akun-TeleBot.git
 cd Order-Akun-TeleBot
 ```
 
-### 2. Create Virtual Environment (Recommended)
+### 2. Create Virtual Environment
 
 ```bash
 # Windows
@@ -76,18 +81,26 @@ source venv/bin/activate
 ### 3. Install Dependencies
 
 ```bash
-pip install python-telegram-bot python-dotenv
+pip install python-telegram-bot python-dotenv cryptography requests
 ```
 
-### 4. Configure Environment Variables
+### 4. Generate Encryption Key
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Copy the output for your `ENCRYPTION_KEY` in `.env`.
+
+### 5. Configure Environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your credentials (see [Configuration](#-configuration)).
+Edit `.env` with your credentials.
 
-### 5. Run the Bot
+### 6. Run the Bot
 
 ```bash
 python bot.py
@@ -97,25 +110,36 @@ python bot.py
 
 ## ⚙️ Configuration
 
-Create a `.env` file in the project root with the following variables:
+Create a `.env` file with the following variables:
 
 ```env
+# Telegram Bot
 TELEGRAM_TOKEN=your_bot_token_here
 OWNER_ID=your_telegram_user_id
-ALLOWED_USERS=user_id_1,user_id_2,user_id_3
-BANNER_FILE_ID=your_banner_file_id_here
+ALLOWED_USERS=user_id_1,user_id_2
+BANNER_FILE_ID=your_banner_file_id
+
+# Payment Gateway (Duitku)
+DUITKU_API_KEY=your_api_key
+DUITKU_MERCHANT_CODE=your_merchant_code
+DUITKU_ENV=sandbox  # or 'production'
+
+# Security
+ENCRYPTION_KEY=your_fernet_key_here
 ```
 
 ### Environment Variables Reference
 
-| Variable         | Required | Description                         | Example             |
-| ---------------- | -------- | ----------------------------------- | ------------------- |
-| `TELEGRAM_TOKEN` | ✅       | Bot API token from BotFather        | `123456:ABC-DEF...` |
-| `OWNER_ID`       | ✅       | Owner's Telegram user ID            | `123456789`         |
-| `ALLOWED_USERS`  | ❌       | Comma-separated admin user IDs      | `111111,222222`     |
-| `BANNER_FILE_ID` | ❌       | Telegram file ID for welcome banner | `AgACAgIAAxk...`    |
-
-> 💡 **Tip**: Get your Telegram user ID by messaging [@userinfobot](https://t.me/userinfobot)
+| Variable               | Required | Description                                  |
+| ---------------------- | :------: | -------------------------------------------- |
+| `TELEGRAM_TOKEN`       |    ✅    | Bot API token from BotFather                 |
+| `OWNER_ID`             |    ✅    | Owner's Telegram user ID                     |
+| `ALLOWED_USERS`        |    ❌    | Comma-separated admin IDs                    |
+| `BANNER_FILE_ID`       |    ❌    | Telegram file ID for welcome banner          |
+| `DUITKU_API_KEY`       |    ✅    | Duitku API key                               |
+| `DUITKU_MERCHANT_CODE` |    ✅    | Duitku merchant code                         |
+| `DUITKU_ENV`           |    ❌    | `sandbox` or `production` (default: sandbox) |
+| `ENCRYPTION_KEY`       |    ✅    | Fernet encryption key for passwords          |
 
 ---
 
@@ -123,68 +147,56 @@ BANNER_FILE_ID=your_banner_file_id_here
 
 ### Public Commands
 
-| Command     | Description                                          |
-| ----------- | ---------------------------------------------------- |
-| `/start`    | Display welcome message with user info and bot stats |
-| `/help`     | Show available commands based on user permissions    |
-| `/accounts` | View current stock grouped by category               |
+| Command     | Description                    |
+| ----------- | ------------------------------ |
+| `/start`    | Welcome message with main menu |
+| `/help`     | Show available commands        |
+| `/accounts` | View current stock by category |
 
 ### Admin Commands (Owner & Allowed Users)
 
-| Command     | Description                                |
-| ----------- | ------------------------------------------ |
-| `/restock`  | Add accounts to inventory                  |
-| `/setprice` | Configure product pricing and descriptions |
+| Command     | Description               |
+| ----------- | ------------------------- |
+| `/restock`  | Add accounts to inventory |
+| `/setprice` | Set product pricing       |
 
 ---
 
 ### Command Details
 
-#### `/start`
-
-Displays a personalized welcome message with:
-
-- User information (ID, username)
-- Bot statistics (total stock, transactions)
-- Quick access buttons for browsing products
-
----
-
 #### `/restock` _(Admin Only)_
 
-**Method 1: Single Account**
+**Single Account:**
 
 ```
-/restock <email> <username> <password> <category>
+/restock <email> <username> <password> <category> [price] [description]
 ```
 
 **Example:**
 
 ```
-/restock user@email.com netflix_user pass123 Netflix
+/restock user@email.com netflix_acc pass123 Netflix 50000 Premium 1 Bulan
 ```
 
-**Method 2: Bulk Import via CSV**
+**Bulk Import via CSV:**
 
-1. Prepare a CSV file with headers: `email,username,password,category`
-2. Send the file with caption `/restock`
+1. Create CSV with headers: `email,username,password,category,price,description`
+2. Send file with caption `/restock`
 
-**CSV Format:**
+**CSV Example:**
 
 ```csv
-email,username,password,category
-user1@mail.com,account1,pass1,Netflix
-user2@mail.com,account2,pass2,Spotify
+email,username,password,category,price,description
+user1@mail.com,account1,pass1,Netflix,50000,Premium 1 Bulan
+user2@mail.com,account2,pass2,Spotify,25000,Family Plan
 ```
 
 ---
 
 #### `/setprice` _(Admin Only)_
 
-Set product pricing and description:
-
 ```
-/setprice <product_name> <price> <description>
+/setprice <product_name> <price> [description]
 ```
 
 **Example:**
@@ -195,253 +207,263 @@ Set product pricing and description:
 
 ---
 
+## 🔄 User Flow
+
+### Purchase Flow via Reply Keyboard
+
+```
+/start → 🏷️ Daftar Produk → Select Category → 🛒 Beli → Pay via Duitku → 🔄 Cek Status → ✅ Account Delivered
+```
+
+### Purchase Flow via Inline Keyboard
+
+```
+/start → 🏷️ Daftar Produk → Beli [Category] → Detail → Buy → 🔗 Pay Now → 🔄 Check Status → ✅ Account Delivered
+```
+
+### Menu Structure (Reply Keyboard)
+
+```
+┌─────────────────┬───────────────┐
+│ 🏷️ Daftar Produk │ 📦 Cek Stok    │
+├─────────────────┼───────────────┤
+│ 💰 Isi Saldo     │ 👤 Akun Saya   │
+├─────────────────┼───────────────┤
+│ ❓ Bantuan       │ 🎟️ Voucher     │
+└─────────────────┴───────────────┘
+```
+
+---
+
 ## 📁 Project Structure
 
 ```
 Order-Akun-TeleBot/
 │
-├── 📄 bot.py                 # Main application entry point
-├── 📄 config.py              # Configuration & environment loader
-├── 📄 db.py                  # Database operations module
+├── 📄 bot.py                    # Main entry point
+├── 📄 config.py                 # Environment loader
+├── 📄 db.py                     # Database with encryption
+├── 📄 duitku_api.py             # Duitku payment integration
+├── 📄 migrate_encryption.py     # Migration tool for encryption
 │
-├── 📁 commands/              # Command handlers (auto-loaded)
-│   ├── __init__.py
-│   ├── start.py              # /start - Welcome message
-│   ├── help.py               # /help - Command list
-│   ├── accounts.py           # /accounts - Stock viewer
-│   ├── restock.py            # /restock - Inventory management
-│   └── setprice.py           # /setprice - Price configuration
+├── 📁 commands/                 # Command handlers (auto-loaded)
+│   ├── start.py                 # /start with dual keyboard
+│   ├── help.py                  # /help command
+│   ├── accounts.py              # /accounts stock viewer
+│   ├── restock.py               # /restock with CSV & pricing
+│   ├── setprice.py              # /setprice configuration
+│   └── text_handler.py          # Reply Keyboard message handler
 │
-├── 📁 callbacks/             # Inline button handlers (auto-loaded)
-│   ├── list_produk.py        # Browse product categories
-│   ├── detail_produk.py      # View product details
-│   ├── buy_produk.py         # Purchase initiation
-│   ├── confirm_payment.py    # Payment confirmation
-│   ├── how_to_order.py       # Order instructions
-│   └── back_to_start.py      # Navigation back to start
+├── 📁 callbacks/                # Inline button handlers (auto-loaded)
+│   ├── list_produk.py           # Browse categories
+│   ├── detail_produk.py         # Product details
+│   ├── buy_produk.py            # Create Duitku invoice
+│   ├── check_payment.py         # Verify payment & deliver
+│   ├── menu_handler.py          # Handle menu buttons
+│   ├── how_to_order.py          # Order instructions
+│   └── back_to_start.py         # Navigation
 │
-├── 📄 .env                   # Environment variables (git-ignored)
-├── 📄 .env.example           # Environment template
-├── 📄 .gitignore             # Git ignore rules
-├── 📄 accounts.db            # SQLite database (auto-created)
-└── 📄 README.md              # Documentation
+├── 📄 .env                      # Environment variables
+├── 📄 .env.example              # Environment template
+├── 📄 accounts.db               # SQLite database
+└── 📄 README.md                 # Documentation
 ```
 
 ---
 
 ## 🗄️ Database Schema
 
-The bot uses SQLite with automatic table creation on startup.
-
 ### Tables
 
-#### `accounts` - Inventory Storage
+#### `accounts` - Inventory
 
-| Column     | Type    | Description                   |
-| ---------- | ------- | ----------------------------- |
-| `id`       | INTEGER | Primary key (auto-increment)  |
-| `email`    | TEXT    | Account email                 |
-| `username` | TEXT    | Account username/product name |
-| `password` | TEXT    | Account password              |
-| `category` | TEXT    | Product category              |
+| Column     | Type    | Description        |
+| ---------- | ------- | ------------------ |
+| `id`       | INTEGER | Primary key        |
+| `email`    | TEXT    | Account email      |
+| `username` | TEXT    | Account username   |
+| `password` | TEXT    | Encrypted password |
+| `category` | TEXT    | Product category   |
 
-#### `categories` - Product Configuration
+#### `categories` - Product Pricing
 
-| Column        | Type    | Description                 |
-| ------------- | ------- | --------------------------- |
-| `name`        | TEXT    | Category name (primary key) |
-| `price`       | INTEGER | Price in IDR                |
-| `description` | TEXT    | Product description         |
+| Column        | Type    | Description         |
+| ------------- | ------- | ------------------- |
+| `name`        | TEXT    | Category name (PK)  |
+| `price`       | INTEGER | Price in IDR        |
+| `description` | TEXT    | Product description |
 
-#### `orders` - Transaction Records
+#### `orders` - Transactions
 
-| Column         | Type    | Description                          |
-| -------------- | ------- | ------------------------------------ |
-| `order_id`     | TEXT    | Unique order ID (e.g., `INV-ABC123`) |
-| `user_id`      | INTEGER | Telegram user ID                     |
-| `product_name` | TEXT    | Purchased product category           |
-| `amount`       | INTEGER | Order amount                         |
-| `status`       | TEXT    | Order status (PENDING/COMPLETED)     |
-| `created_at`   | INTEGER | Unix timestamp                       |
+| Column         | Type    | Description                     |
+| -------------- | ------- | ------------------------------- |
+| `order_id`     | TEXT    | Invoice ID (e.g., `INV-ABC123`) |
+| `user_id`      | INTEGER | Telegram user ID                |
+| `product_name` | TEXT    | Category purchased              |
+| `amount`       | INTEGER | Price amount                    |
+| `status`       | TEXT    | `PENDING` / `SUCCESS`           |
+| `created_at`   | INTEGER | Unix timestamp                  |
+| `payment_url`  | TEXT    | Duitku payment URL              |
+| `payment_ref`  | TEXT    | Duitku reference ID             |
 
 ---
 
-## ⚡ How It Works
+## 💳 Payment Integration
 
-### Architecture Overview
+### Duitku API
+
+The bot integrates with **Duitku Payment Gateway** for seamless payments:
+
+1. **Create Invoice** (`/v2/inquiry`)
+   - Generates payment link with QRIS/VA options
+   - 60-minute expiry period
+
+2. **Check Status** (`/transactionStatus`)
+   - Verifies payment completion
+   - Auto-delivers account on success
+
+### Flow Diagram
 
 ```mermaid
-graph TB
-    A[Telegram User] --> B[Bot Application]
-    B --> C{Handler Router}
-    C --> D[Commands]
-    C --> E[Callbacks]
-    D --> F[(SQLite DB)]
-    E --> F
+sequenceDiagram
+    participant U as User
+    participant B as Bot
+    participant D as Duitku API
+    participant DB as Database
 
-    subgraph Commands
-        D --> D1["/start"]
-        D --> D2["/help"]
-        D --> D3["/accounts"]
-        D --> D4["/setprice"]
-    end
-
-    subgraph Callbacks
-        E --> E1[list_produk]
-        E --> E2[detail_produk]
-        E --> E3[buy_produk]
-        E --> E4[confirm_payment]
-    end
+    U->>B: Click "Beli" / "Buy"
+    B->>D: Create Invoice
+    D-->>B: Payment URL
+    B->>DB: Save Order (PENDING)
+    B-->>U: Payment Link
+    U->>D: Complete Payment
+    U->>B: Check Status
+    B->>D: Verify Payment
+    D-->>B: Status: SUCCESS
+    B->>DB: Update Order
+    B->>DB: Get Random Account
+    B->>DB: Delete Sold Account
+    B-->>U: Deliver Account Details
 ```
 
-### Key Mechanisms
+### Environment Modes
 
-1. **Auto-Loading Handlers**
-   - `bot.py` scans `/commands` and `/callbacks` directories
-   - Modules are loaded dynamically based on naming conventions
-   - Each module exports `DESCRIPTION` for command registration
-
-2. **Permission System**
-   - `RESTOCK_ALLOWED` list combines `OWNER_ID` + `ALLOWED_USERS`
-   - Admin commands check user ID before execution
-   - `/help` filters commands based on user permissions
-
-3. **Order Flow**
-
-   ```
-   Browse Products → Select Category → View Details → Create Order → Confirm Payment
-   ```
-
-4. **Inventory Management**
-   - Accounts are grouped by `category`
-   - Random account selection for sales
-   - Automatic deletion after confirmed sale
-
----
-
-## 📚 API Reference
-
-### Database Functions (`db.py`)
-
-| Function                  | Parameters                              | Returns      | Description                     |
-| ------------------------- | --------------------------------------- | ------------ | ------------------------------- |
-| `setup_db()`              | -                                       | -            | Initialize database tables      |
-| `add_account()`           | email, username, password, category     | -            | Add new account                 |
-| `get_all_accounts()`      | -                                       | List[Tuple]  | Get all accounts                |
-| `get_unique_categories()` | -                                       | List[Tuple]  | Get categories with stock count |
-| `get_random_account()`    | category                                | Tuple / None | Get random account by category  |
-| `delete_account()`        | account_id                              | -            | Remove account from inventory   |
-| `set_product_price()`     | name, price, description                | -            | Set/update product pricing      |
-| `get_product_details()`   | name                                    | Tuple        | Get price and description       |
-| `create_order()`          | order_id, user_id, product_name, amount | -            | Create new order                |
-| `get_order()`             | order_id                                | Tuple / None | Get order details               |
-| `update_order_status()`   | order_id, status                        | -            | Update order status             |
+| Mode       | Base URL                                          |
+| ---------- | ------------------------------------------------- |
+| Sandbox    | `https://sandbox.duitku.com/webapi/api/merchant`  |
+| Production | `https://passport.duitku.com/webapi/api/merchant` |
 
 ---
 
 ## 🔒 Security
 
+### Password Encryption
+
+All account passwords are encrypted using **Fernet** symmetric encryption:
+
+```python
+from cryptography.fernet import Fernet
+
+# Generate key (do once, save in .env)
+key = Fernet.generate_key()
+
+# Encrypt
+cipher = Fernet(key)
+encrypted = cipher.encrypt(password.encode()).decode()
+
+# Decrypt
+decrypted = cipher.decrypt(encrypted.encode()).decode()
+```
+
+### Migration Tool
+
+If you have existing unencrypted data:
+
+```bash
+python migrate_encryption.py
+```
+
 ### Best Practices
 
 - ✅ Never commit `.env` to version control
-- ✅ Use environment variables for all sensitive data
-- ✅ Validate user permissions before admin operations
-- ✅ Sanitize user inputs using `html.escape()`
-
-### Security Considerations
-
-> ⚠️ **Warning**: Passwords are stored in plain text. For production use, consider:
->
-> - Encrypting sensitive data at rest
-> - Using secure credential storage
-> - Implementing audit logging
+- ✅ Use unique `ENCRYPTION_KEY` per deployment
+- ✅ Validate admin permissions before sensitive operations
+- ✅ Use `DUITKU_ENV=sandbox` for testing
 
 ---
 
 ## 🔍 Troubleshooting
 
-### Common Issues
-
 <details>
-<summary><b>Bot not responding to commands</b></summary>
+<summary><b>Bot not responding</b></summary>
 
 1. Verify `TELEGRAM_TOKEN` is correct
-2. Ensure bot is running: `python bot.py`
-3. Check internet connectivity
-4. Confirm bot was started via BotFather
-
+2. Check if bot is running: `python bot.py`
+3. Ensure internet connectivity
 </details>
 
 <details>
-<summary><b>Permission denied for /restock</b></summary>
+<summary><b>Payment link not generating</b></summary>
 
-1. Verify your Telegram user ID
-2. Check `OWNER_ID` in `.env`
-3. Ensure your ID is in `ALLOWED_USERS` if not owner
-4. Restart bot after `.env` changes
-
+1. Check `DUITKU_API_KEY` and `DUITKU_MERCHANT_CODE`
+2. Verify `DUITKU_ENV` setting (sandbox/production)
+3. Check Duitku dashboard for API errors
 </details>
 
 <details>
-<summary><b>Database errors</b></summary>
+<summary><b>Encryption errors</b></summary>
 
-1. Check if `accounts.db` is locked by another process
-2. Verify write permissions in project directory
-3. Delete `accounts.db` to reset (⚠️ loses all data)
-
+1. Verify `ENCRYPTION_KEY` is valid Fernet key
+2. Run `python migrate_encryption.py` for existing data
+3. Generate new key if needed
 </details>
 
 <details>
 <summary><b>CSV import failing</b></summary>
 
-1. Ensure CSV has correct headers: `email,username,password,category`
-2. Use UTF-8 encoding
-3. Check for empty rows or malformed data
-
+1. Required headers: `email,username,password,category`
+2. Optional headers: `price,description`
+3. Use UTF-8 encoding
 </details>
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how to extend the bot:
-
 ### Adding New Commands
 
-1. Create file in `commands/` directory (e.g., `mycommand.py`)
-2. Define the command function:
+1. Create `commands/mycommand.py`:
 
-   ```python
-   from telegram import Update
-   from telegram.ext import ContextTypes
+```python
+from telegram import Update
+from telegram.ext import ContextTypes
 
-   DESCRIPTION = "My command description"
+DESCRIPTION = "My command description"
 
-   async def mycommand_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-       await update.message.reply_text("Hello!")
-   ```
+async def mycommand_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Hello!")
+```
 
-3. Restart the bot - command auto-loads!
+2. Restart bot - auto-loads!
 
 ### Adding New Callbacks
 
-1. Create file in `callbacks/` directory
-2. Define `PATTERN` and `callback_handler`:
+1. Create `callbacks/my_callback.py`:
 
-   ```python
-   PATTERN = "^my_pattern$"
+```python
+PATTERN = "^my_pattern$"
 
-   async def callback_handler(update, context):
-       query = update.callback_query
-       await query.answer()
-       # Handle callback
-   ```
+async def callback_handler(update, context):
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_caption(caption="Response")
+```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ---
 
@@ -450,7 +472,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 </p>
 
 <p align="center">
-  <a href="https://t.me/yourbotusername">Try the Bot</a> •
   <a href="https://github.com/yourusername/Order-Akun-TeleBot/issues">Report Bug</a> •
   <a href="https://github.com/yourusername/Order-Akun-TeleBot/issues">Request Feature</a>
 </p>
