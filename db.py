@@ -39,16 +39,22 @@ def get_actual_category_case(name_input):
             
     return name_input
 
-def add_account(email, username, password, category):
+def add_account(email, username, password, category, price=None, description=None):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # Use existing case if available, otherwise use input as-is (don't force lower)
     real_category = get_actual_category_case(category)
-    
     encrypted_pass = encrypt_data(password)
+    
     cursor.execute('INSERT INTO accounts (email, username, password, category) VALUES (?, ?, ?, ?)', 
                    (email, username, encrypted_pass, real_category))
+    
+    if price is not None:
+        cursor.execute('''
+            INSERT OR REPLACE INTO categories (name, price, description) 
+            VALUES (?, ?, ?)
+        ''', (real_category.lower(), price, description or "Deskripsi belum diatur."))
+        
     conn.commit()
     conn.close()
 
@@ -60,7 +66,6 @@ def get_all_accounts():
     rows = cursor.fetchall()
     conn.close()
     
-    # Decrypt passwords
     decrypted_rows = []
     for r in rows:
         email, username, password, category = r
