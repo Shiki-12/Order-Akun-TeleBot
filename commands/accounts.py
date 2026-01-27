@@ -4,14 +4,12 @@ import db
 
 DESCRIPTION = "List total stocked accounts"
 
-async def accounts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def get_stock_message():
     rows = db.get_all_accounts()
 
     if not rows:
-        await update.message.reply_text("No accounts found in database.")
-        return
+        return "No accounts found in database."
 
-    # Group by username and count
     # Group by username/category and count
     stock_counts = {}
     for email, user, pwd, cat in rows:
@@ -26,4 +24,8 @@ async def accounts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message += f"{i}. <b>{username}</b>{cat_str} | Stok: <code>{count}</code>\n"
 
     message += f"\n<b>Total:</b> {len(rows)} account(s)"
+    return message
+
+async def accounts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = get_stock_message()
     await update.message.reply_text(message, parse_mode='HTML')

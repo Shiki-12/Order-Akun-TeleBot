@@ -1,4 +1,4 @@
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 import db #
 import config #
@@ -29,28 +29,37 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"/accounts - Untuk melihat stok produk"
     )
 
-    # Struktur ReplyKeyboardMarkup sesuai referensi gambar yang Anda inginkan
-    # Pastikan menggunakan KeyboardButton, bukan InlineKeyboardButton
+    # Struktur ReplyKeyboardMarkup
     keyboard = [
-        [KeyboardButton("🏷️ Daftar Produk"), KeyboardButton("💰 Sisa Saldo: Rp 0")],
-        [KeyboardButton("📦 Cek Stok")],
-        [KeyboardButton("1"), KeyboardButton("2"), KeyboardButton("3"), KeyboardButton("4"), KeyboardButton("5")],
-        [KeyboardButton("6")],
+        [KeyboardButton("🏷️ Daftar Produk"), KeyboardButton("📦 Cek Stok")],
         [KeyboardButton("💰 Isi Saldo"), KeyboardButton("👤 Akun Saya")],
         [KeyboardButton("❓ Bantuan"), KeyboardButton("🎟️ Voucher")]
     ]
 
-    # PERBAIKAN: Ganti 'persistent' menjadi 'is_persistent'
     reply_markup = ReplyKeyboardMarkup(
         keyboard, 
         resize_keyboard=True, 
         is_persistent=True 
     )
 
-    # Mengirim pesan dengan banner dan keyboard baru
+    # Struktur InlineKeyboardMarkup (Mirroring ReplyKeyboardMarkup)
+    inline_keyboard = [
+        [InlineKeyboardButton("🏷️ Daftar Produk", callback_data="list_produk"), InlineKeyboardButton("📦 Cek Stok", callback_data="check_stock")],
+        [InlineKeyboardButton("💰 Isi Saldo", callback_data="add_balance"), InlineKeyboardButton("👤 Akun Saya", callback_data="my_account")],
+        [InlineKeyboardButton("❓ Bantuan", callback_data="help"), InlineKeyboardButton("🎟️ Voucher", callback_data="voucher")]
+    ]
+    inline_markup = InlineKeyboardMarkup(inline_keyboard)
+
+    # Mengirim pesan dengan banner, caption, dan KEDUA keyboard (Reply & Inline)
     await update.message.reply_photo(
         photo=file_id,
         caption=caption_text,
-        reply_markup=reply_markup,
+        reply_markup=inline_markup, # Attach Inline Keyboard to the message
         parse_mode='HTML'
+    )
+    
+    # Send a text message to ensure Reply Keyboard is visible/refreshed
+    await update.message.reply_text(
+        "Gunakan menu di bawah (Keyboard) atau tombol di atas (Inline).",
+        reply_markup=reply_markup
     )

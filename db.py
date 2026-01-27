@@ -21,14 +21,34 @@ def decrypt_data(data):
     except:
         return data # Fallback if not encrypted or key invalid
 
-
+def get_actual_category_case(name_input):
+    """
+    Returns the existing category name from DB if it matches case-insensitively.
+    Otherwise returns the input name as-is.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('SELECT DISTINCT category FROM accounts')
+    rows = cursor.fetchall()
+    conn.close()
+    
+    input_lower = name_input.lower()
+    for (existing_cat,) in rows:
+        if existing_cat and existing_cat.lower() == input_lower:
+            return existing_cat
+            
+    return name_input
 
 def add_account(email, username, password, category):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
+    
+    # Use existing case if available, otherwise use input as-is (don't force lower)
+    real_category = get_actual_category_case(category)
+    
     encrypted_pass = encrypt_data(password)
     cursor.execute('INSERT INTO accounts (email, username, password, category) VALUES (?, ?, ?, ?)', 
-                   (email, username, encrypted_pass, category.lower()))
+                   (email, username, encrypted_pass, real_category))
     conn.commit()
     conn.close()
 
@@ -155,20 +175,20 @@ def create_order(order_id, user_id, product_name, amount, payment_url=None, paym
     conn.close()
 
 def get_unique_categories():
-    """Mengambil daftar kategori dan jumlah stoknya."""
+    """Mengambil daftar kategori dan jumlah stoknya (Case Insensitive Grouping)."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    # Filter only accounts that have a category set
-    cursor.execute('SELECT category, COUNT(*) FROM accounts WHERE category IS NOT NULL AND category != "" GROUP BY category')
+    cursor.execute('SELECT category, COUNT(*) FROM accounts WHERE category IS NOT NULL AND category != "" GROUP BY LOWER(category)')
     rows = cursor.fetchall()
     conn.close()
     return rows
 
 def get_random_account(category):
-    """Mengambil satu akun random berdasarkan kategori."""
+    """Mengambil satu akun random berdasarkan kategori (Case Insensitive)."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('SELECT id, email, username, password FROM accounts WHERE category = ? ORDER BY RANDOM() LIMIT 1', (category,))
+    # Compare lowercase values to find any matching account regardless of stored case
+    cursor.execute('SELECT id, email, username, password FROM accounts WHERE LOWER(category) = LOWER(?) ORDER BY RANDOM() LIMIT 1', (category,))
     row = cursor.fetchone()
     conn.close()
     
