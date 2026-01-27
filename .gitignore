@@ -5,3 +5,4 @@ commands/__pycache__/
 *.pyc
 *.pyo
 *.csv
+venv/
